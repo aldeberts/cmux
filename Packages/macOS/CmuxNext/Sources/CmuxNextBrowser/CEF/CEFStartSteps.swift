@@ -1,4 +1,5 @@
 import CmuxNextCompat
+import Darwin
 
 /// The main-thread steps of Chromium's start, counted as
 /// `MainThreadEngineStart` time so control deadlines skip them:
@@ -10,6 +11,14 @@ import CmuxNextCompat
 /// although nothing it waited for was slow (os-smoke, 2026-10-18).
 final class CEFStartSteps {
     static let shared = CEFStartSteps()
+
+    /// Diagnostic points of the first Chromium page's creation (`debug.cef` `start_steps`).
+    private(set) var marks: [CEFStartMark] = []
+
+    func point(_ name: String) {
+        guard marks.count < 64, !marks.contains(where: { $0.name == name }) else { return }
+        marks.append(CEFStartMark(name: name, startUptimeNanos: clock_gettime_nsec_np(CLOCK_UPTIME_RAW), milliseconds: 0))
+    }
 
     /// True from the first `create_window` until that window exists or
     /// fails; false again after.
@@ -42,4 +51,11 @@ final class CEFStartSteps {
         if !windowPending { firstWindowPending = false }
         if firstWindowPending { MainThreadEngineStart.shared.run(work) } else { work() }
     }
+}
+
+/// One diagnostic point (`CEFStartSteps.marks`).
+public struct CEFStartMark: Sendable {
+    public var name: String
+    public var startUptimeNanos: UInt64
+    public var milliseconds: Double
 }

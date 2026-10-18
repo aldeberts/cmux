@@ -115,6 +115,18 @@ public final class CEFEngine: BrowserEngine {
     /// How this process started CEF (for `debug.cef`).
     public var startReport: CEFStartReport { CEFRuntime.shared.report }
 
+    public func notePoint(_ name: String) -> Bool {
+        CEFStartSteps.shared.point(name)
+        return true
+    }
+
+    public func noted<T>(_ name: String, _ value: T) -> T {
+        CEFStartSteps.shared.point(name)
+        return value
+    }
+
+    public var startMarks: [CEFStartMark] { CEFStartSteps.shared.marks }
+
     /// External message pump counters (for `debug.cef`); nil before CEF runs.
     public var pumpStats: CEFPumpStats? { CEFRuntime.shared.pump?.stats }
 
