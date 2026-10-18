@@ -77,8 +77,7 @@ impl Fixture {
             .expect("the detected Bun installation has no bound update plan");
         // Replace only the manager, as the npm prefix tests do. All target,
         // package and quoting bytes still come from the production planner.
-        let manager =
-            if plan.argv.first().map(String::as_str) == Some("/usr/bin/env") { 3 } else { 0 };
+        let manager = plan.argv.len() - 4;
         plan.argv[manager] = self.manager.to_str().unwrap().into();
         plan
     }
@@ -213,4 +212,35 @@ fn bun_installation_binding_preserves_existing_npm_prefix_plans() {
         "@manaflow-ai/codex@latest".into(),
     ];
     assert_eq!(plan.argv, expected);
+}
+
+#[test]
+fn bun_installation_binding_discovery_does_not_expand_the_default_child_environment() {
+    for key in ["BUN_INSTALL_GLOBAL_DIR", "BUN_INSTALL_BIN", "XDG_CONFIG_HOME"] {
+        for family in [None, Some("codex"), Some("claude")] {
+            assert!(!acpmux::login_env::allowed(key, "/fixture/path", family));
+        }
+    }
+}
+
+#[tokio::test]
+async fn bun_installation_binding_auto_update_uses_the_same_bound_plan_once() {
+    let f = Fixture::new();
+    let (home, global, bin, path) = f.installation("auto", false);
+    let mut row = f.row("auto", &path, f.plan(&home, &path));
+    row.auto_update = true;
+    let cache = f.root.join("health-auto.json");
+    let choice = f.root.join("auto.json");
+    std::fs::write(&cache, serde_json::to_vec(&vec![row]).unwrap()).unwrap();
+    std::fs::write(&choice, "[\"auto\"]").unwrap();
+    let service = HealthService::new();
+    service.attach(Settings {
+        cache: Some(cache),
+        home,
+        auto_update: Some(choice),
+        ..Settings::default()
+    });
+    assert_eq!(service.run_auto_updates().await, vec!["auto"]);
+    assert!(service.run_auto_updates().await.is_empty(), "same-version auto update repeated");
+    f.assert_target(&global, &bin);
 }
