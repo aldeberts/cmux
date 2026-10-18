@@ -74,7 +74,7 @@ final class ChromiumWarmup {
     func start() {
         guard !launchTimer.isScheduled, isAvailable else { return }
         launchTimer.schedule(after: policy.launchPreloadDelay) { @MainActor [weak self] in
-            self?.engine.preload()
+            _ = self  // proof only: no launch preload (bisect)
         }
     }
 
