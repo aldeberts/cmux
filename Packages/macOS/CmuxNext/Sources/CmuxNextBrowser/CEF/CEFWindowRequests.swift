@@ -78,8 +78,7 @@ final class CEFWindowRequests {
             sourceHost = popup.tabs.lazy.compactMap(\.popupOpenerHost).first
         }
         return runtime.hosts.values.compactMap { host in
-            // The spare window (CEFSpareWindow) is no pane's: never a target.
-            guard host.isLive, !host.isPopupHost, !host.isSpare, let anchor = host.anchorBrowser else { return nil }
+            guard host.isLive, !host.isPopupHost, let anchor = host.anchorBrowser else { return nil }
             return CEFWindowCandidate(
                 anchor: anchor,
                 profilePath: runtime.storeKey(of: host.key),
