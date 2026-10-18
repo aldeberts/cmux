@@ -274,7 +274,7 @@ final class CEFRuntime {
             let text = String(decoding: message.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
             return .failure(.framework(text))
         }
-        CEFFrameworkPrefetch.warm(layout)
+        primeImageIO()
         // Lists the framework's locale directories here, off the main thread.
         let locale = CEFLocale.current(frameworkDirectory: layout.frameworkDirectory)
         return .success(CEFLoadedLibrary(shim: shim, shimABI: shimABI ?? "", layout: layout, locale: locale, loadDuration: clock.now - started))
