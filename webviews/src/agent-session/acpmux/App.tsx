@@ -196,6 +196,7 @@ import { archiveRow, markUnreadRow } from "./header/archiveRow";
 import { copyRow } from "./header/copyRow";
 import { instructionsRow, projectFilesRow } from "./header/instructionsRow";
 import { sideChatRow } from "./header/sideChatRow";
+import { SteerMark } from "./conversation/SteerMark";
 import { Thinking } from "./conversation/Thinking";
 import { WorkingFor } from "./conversation/WorkingFor";
 import { type HarnessHealth, HarnessHealthNotice } from "./HarnessHealthNotice";
@@ -541,6 +542,7 @@ const MessageRow = memo(
             <UserBubble row={row} text={row.text ?? ""} />
           )}
           <FailedPrompt row={row} />
+          {row.steer && <SteerMark steer={row.steer} />}
           {row.status && (
             <div className="cv-user__status">
               <span>{row.status}</span>
